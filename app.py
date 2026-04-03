@@ -24,17 +24,24 @@ def sms_incoming():
 
 @app.route("/telegram", methods=["POST"])
 def telegram_incoming():
-    data = request.json
-    text = data["message"]["text"]
-    if ":" in text:
-        to_number, body = text.split(":", 1)
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        client.messages.create(
-            body=body.strip(),
-            from_=TWILIO_PHONE_NUMBER,
-            to=to_number.strip()
-        )
+    try:
+        data = request.json
+        text = data["message"]["text"]
+        if ":" in text:
+            parts = text.split(":", 1)
+            to_number = parts[0].strip()
+            body = parts[1].strip()
+            client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=body,
+                from_=TWILIO_PHONE_NUMBER,
+                to=to_number
+            )
+            print(f"Sent SMS to {to_number}: {body}")
+        else:
+            print(f"Invalid format received: {text}")
+    except Exception as e:
+        print(f"ERROR: {e}")
     return "ok", 200
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
